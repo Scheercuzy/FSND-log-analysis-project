@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    '-a', '--answer', nargs='+', choices=['1', '2', '3', 'all'])
+    '-a', '--answer', nargs='+', choices=['1', '2', '3', 'all'], default='all')
 parser.add_argument(
     '-o', '--output-file', nargs='?')
 parser.add_argument(
