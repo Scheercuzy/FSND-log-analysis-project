@@ -57,3 +57,16 @@ To get answers outputed to a file, use the `-o` flag. It takes the argument of a
 ```bash
 logA -a all -o output.txt
 ```
+
+### Output Webbrowser
+
+**NOTE**: This is running with the development version so only one request at the time!
+**NOTE**: All other flags are ignored when running it in the webbrowser
+
+To get the answers on your webbrowser, run the command:
+
+```bash
+logA -w
+```
+
+Then open your webrowser on `0.0.0.0:5000`

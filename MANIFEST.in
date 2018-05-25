@@ -1,0 +1,2 @@
+include log_analysis/static/css/*
+include log_analysis/templates/*

@@ -1,43 +1,73 @@
 #!/usr/bin/env python3
-import psycopg2
 import logging
 import argparse
 
+from log_analysis.database import DBConnection
+
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(message)s")
 
-DBNAME = 'news'
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
     '-a', '--answer', nargs='+', choices=['1', '2', '3', 'all'])
 parser.add_argument(
     '-o', '--output-file', nargs='?')
+parser.add_argument(
+    '-w', '--web', action='store_true')
 args = parser.parse_args()
 logging.debug(args)
 
 
 def main():
-    conn = psycopg2.connect("dbname=%s" % (DBNAME,))
-    answer = []
-    if '1' in args.answer or 'all' in args.answer:
-        answer1(conn, answer)
-    if '2' in args.answer or 'all' in args.answer:
-        answer2(conn, answer)
-    if '3' in args.answer or 'all' in args.answer:
-        answer3(conn, answer)
-    if args.output_file:
-        with open(args.output_file, 'w') as f:
-            for i in answer:
-                f.write(i)
-                f.write("\n")
+    if args.web:
+        from log_analysis.webserver import app
+        # DOESN'T WORK WITH A VAGRANT INSTANCE
+        # import webbrowser
+        # webbrowser.open_new('0.0.0.0:5000')
+        app.run(host='0.0.0.0', port=5000)
     else:
-        for i in answer:
-            print(i)
-    conn.close()
+        with_console()
 
 
-def answer1(conn, answer):
-    answer.append("1. What are the most popular three articles of all time?")
+def with_console():
+    with DBConnection() as conn:
+        answers = []
+        if '1' in args.answer:
+            answers.append(answer1(conn))
+        if '2' in args.answer:
+            answers.append(answer2(conn))
+        if '3' in args.answer:
+            answers.append(answer3(conn))
+        if 'all' in args.answer:
+            answers = answer_all(conn)
+        if args.output_file:
+            output_to_file(answers)
+        else:
+            for item in answers:
+                print(item['question'])
+                for i in item['answers']:
+                    print(i)
+                print('')
+
+
+def answer_all(conn):
+    answers = []
+    answers.append(answer1(conn))
+    answers.append(answer2(conn))
+    answers.append(answer3(conn))
+    return answers
+
+
+def output_to_file(answers):
+    with open(args.output_file, 'w') as f:
+                for item in answers:
+                    f.write(item['question'] + '\n')
+                    for i in item['answers']:
+                        f.write(i + '\n')
+                    f.write("\n")
+
+
+def answer1(conn):
     cur = conn.cursor()
     cur.execute("""
         SELECT path, COUNT(*) AS num FROM log
@@ -48,16 +78,19 @@ def answer1(conn, answer):
     """)
     data = cur.fetchall()
     logging.debug(data)
-    for i in data:
-        name = i[0][9:].replace("-", " ").title()
-        views = i[1]
-        answer.append("'{}' — {} views".format(name, views))
+    answers = []
+    for item in data:
+        name = item[0][9:].replace("-", " ").title()
+        views = item[1]
+        answers.append("'{}' — {} views".format(name, views))
     cur.close()
-    return answer
+    return {
+        'question': "1. What are the most popular three articles of all time?",
+        'answers': answers
+    }
 
 
-def answer2(conn, answer):
-    answer.append("2. Who are the most popular article authors of all time?")
+def answer2(conn):
     cur = conn.cursor()
     cur.execute("""
         SELECT authors.name, SUM(subq.num) as total
@@ -75,16 +108,19 @@ def answer2(conn, answer):
     """)
     data = cur.fetchall()
     logging.debug(data)
-    for i in data:
-        name = i[0]
-        views = i[1]
-        answer.append("'{}' — {} views".format(name, views))
+    answers = []
+    for item in data:
+        name = item[0]
+        views = item[1]
+        answers.append("'{}' — {} views".format(name, views))
     cur.close()
-    return answer
+    return {
+        'question': "2. Who are the most popular article authors of all time?",
+        'answers': answers
+    }
 
 
-def answer3(conn, answer):
-    answer.append("On which days did more than 1% of requests lead to errors?")
+def answer3(conn):
     cur = conn.cursor()
     cur.execute("""
         SELECT date_trunc('day', log.time) AS dday,
@@ -107,12 +143,17 @@ def answer3(conn, answer):
     """)
     data = cur.fetchall()
     logging.debug(data)
-    for i in data:
-        day = i[0].strftime('%a %d %Y')
-        percentage = i[1]
-        answer.append("'{}' — {}% errors".format(day, round(percentage, 2)))
+    answers = []
+    for item in data:
+        day = item[0].strftime('%a %d %Y')
+        percentage = item[1]
+        answers.append("'{}' — {}% errors".format(day, round(percentage, 2)))
     cur.close()
-    return answer
+    return {
+        'question': "3. On which days did more than 1% of requests lead \
+to errors?",
+        'answers': answers
+    }
 
 
 if __name__ == "__main__":

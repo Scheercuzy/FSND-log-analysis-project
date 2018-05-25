@@ -11,7 +11,7 @@ with open('requirements.txt') as f:
 
 setup(
     name='log_analysis',
-    version='2',
+    version='2.1',
     python_requires='>=3.4',
     description="""Log Analysis Project for Udacity's Full
         Stack Developer Course""",
@@ -21,6 +21,7 @@ setup(
     author_email='maxi730@gmail.com',
     license='MIT',
     packages=find_packages(),
+    include_package_data=True,
     entry_points={
         'console_scripts': [
             'logA = log_analysis.__main__:main'
