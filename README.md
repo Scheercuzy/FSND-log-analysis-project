@@ -36,7 +36,9 @@ Make sure you are in the virtual environment when you run the code:
 source env/bin/activate
 ```
 
-To get the answer to all the questions run:
+### Output to console
+
+To get the answers on the command line, use the `-a` flag. To get all the answers, give the `all` argument with the `-a` flag:
 
 ```bash
 logA -a all
@@ -48,12 +50,10 @@ if you want to get the answers one at the time (replace `question_number` with t
 logA -a question_number
 ```
 
-### Output the file
+### Output to file
 
-If you want to output the answers to a file, add `> filename.txt` at the end of your command, like below:
+To get answers outputed to a file, use the `-o` flag. It takes the argument of a filename.
 
 ```bash
-logA -a all > answer.txt
+logA -a all -o output.txt
 ```
-
-The answer file will be located in the directory you ran the command
