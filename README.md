@@ -55,7 +55,7 @@ logA -a question_number
 To get answers outputed to a file, use the `-o` flag. It takes the argument of a filename.
 
 ```bash
-logA -a all -o output.txt
+logA -o output.txt
 ```
 
 ### Output Webbrowser
